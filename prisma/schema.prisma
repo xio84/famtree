@@ -1,0 +1,116 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  trees         Tree[]
+  accounts      Account[]
+  sessions      Session[]
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model AllowedEmail {
+  id      String   @id @default(cuid())
+  email   String   @unique
+  addedAt DateTime @default(now())
+}
+
+model Tree {
+  id        String   @id @default(cuid())
+  name      String
+  ownerId   String
+  owner     User     @relation(fields: [ownerId], references: [id])
+  members   Member[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Member {
+  id        String         @id @default(cuid())
+  treeId    String
+  tree      Tree           @relation(fields: [treeId], references: [id], onDelete: Cascade)
+  name      String
+  birthDate DateTime?
+  deathDate DateTime?
+  gender    Gender         @default(UNKNOWN)
+  photoUrl  String?
+  notes     String?
+  x         Float?
+  y         Float?
+  archived  Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  asParent  Relationship[] @relation("ParentRelations")
+  asChild   Relationship[] @relation("ChildRelations")
+  asSpouse1 Relationship[] @relation("Spouse1Relations")
+  asSpouse2 Relationship[] @relation("Spouse2Relations")
+}
+
+model Relationship {
+  id        String           @id @default(cuid())
+  type      RelationshipType
+  parentId  String?
+  parent    Member?          @relation("ParentRelations", fields: [parentId], references: [id])
+  childId   String?
+  child     Member?          @relation("ChildRelations", fields: [childId], references: [id])
+  spouse1Id String?
+  spouse1   Member?          @relation("Spouse1Relations", fields: [spouse1Id], references: [id])
+  spouse2Id String?
+  spouse2   Member?          @relation("Spouse2Relations", fields: [spouse2Id], references: [id])
+  createdAt DateTime         @default(now())
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  UNKNOWN
+}
+
+enum RelationshipType {
+  PARENT_CHILD
+  SPOUSE
+}

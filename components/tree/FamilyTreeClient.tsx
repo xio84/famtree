@@ -4,6 +4,7 @@ import { useCallback, useState } from "react"
 import type { Connection } from "@xyflow/react"
 import { useTree } from "@/hooks/useTree"
 import { api } from "@/lib/api"
+import { kinshipLabel } from "@/lib/kinship"
 import { RelationshipType } from "@/app/generated/prisma/enums"
 import type { MemberData, RelationSelection, RelationshipData } from "@/types"
 import { FamilyTree } from "./FamilyTree"
@@ -12,6 +13,16 @@ import { MemberCard } from "@/components/members/MemberCard"
 
 interface FamilyTreeClientProps {
   initialTrees: { id: string; name: string }[]
+}
+
+/** The displayed-spouse choices saved for a tree, keyed memberId -> spouseId. */
+function loadSpouseChoice(treeId: string): Record<string, string> {
+  if (typeof window === "undefined") return {}
+  try {
+    return JSON.parse(localStorage.getItem(`famtree:spouse:${treeId}`) ?? "{}")
+  } catch {
+    return {}
+  }
 }
 
 export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
@@ -27,9 +38,11 @@ export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
   const [panelOpen, setPanelOpen] = useState(false)
   const [selfId, setSelfId] = useState<string | null>(null)
   const [selfTreeId, setSelfTreeId] = useState<string | null>(null)
+  const [spouseChoice, setSpouseChoice] = useState<Record<string, string>>({})
 
-  // "Who am I" is a personal pointer — kept per tree in localStorage.
-  // Reload it whenever the active tree changes (render-time state sync).
+  // "Who am I" and the displayed-spouse choices are personal pointers — kept
+  // per tree in localStorage. Reload them whenever the active tree changes
+  // (render-time state sync).
   if (selfTreeId !== selectedTreeId) {
     setSelfTreeId(selectedTreeId)
     setSelfId(
@@ -37,6 +50,7 @@ export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
         ? null
         : localStorage.getItem(`famtree:self:${selectedTreeId}`)
     )
+    setSpouseChoice(loadSpouseChoice(selectedTreeId))
   }
 
   const chooseSelf = useCallback(
@@ -58,9 +72,40 @@ export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
     addRelationship,
     removeRelationship,
     isLoading,
-  } = useTree(selectedTreeId, selfId)
+  } = useTree(selectedTreeId, selfId, spouseChoice)
 
   const selectedMember = members.find((m) => m.id === selectedMemberId)
+
+  // Cycle which spouse (and children) a multi-spouse member shows. Persisted
+  // per tree in localStorage, like the "Who am I" pointer.
+  const cycleSpouse = useCallback(
+    (memberId: string, dir: number) => {
+      const spouses = relationships
+        .filter(
+          (r) =>
+            r.type === "SPOUSE" &&
+            (r.spouse1Id === memberId || r.spouse2Id === memberId)
+        )
+        .map((r) => (r.spouse1Id === memberId ? r.spouse2Id : r.spouse1Id))
+        .filter((id): id is string => !!id)
+      if (spouses.length < 2) return
+      setSpouseChoice((prev) => {
+        const current =
+          prev[memberId] && spouses.includes(prev[memberId])
+            ? prev[memberId]
+            : spouses[0]
+        const idx = spouses.indexOf(current)
+        const next = spouses[(idx + dir + spouses.length) % spouses.length]
+        const updated = { ...prev, [memberId]: next }
+        localStorage.setItem(
+          `famtree:spouse:${selectedTreeId}`,
+          JSON.stringify(updated)
+        )
+        return updated
+      })
+    },
+    [relationships, selectedTreeId]
+  )
 
   const trimmedQuery = searchQuery.trim().toLowerCase()
   const searchResults = trimmedQuery
@@ -349,6 +394,11 @@ export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
               <MemberCard
                 member={selectedMember}
                 isSelf={selfId === selectedMember.id}
+                relationLabel={
+                  selfId && selfId !== selectedMember.id
+                    ? kinshipLabel(selfId, selectedMember.id, members, relationships)
+                    : null
+                }
                 onClose={() => setSelectedMemberId(null)}
                 onEdit={() => setEditMode(true)}
                 onDelete={() => {
@@ -385,6 +435,7 @@ export function FamilyTreeClient({ initialTrees }: FamilyTreeClientProps) {
             focusToken={focusTick}
             onNodeClick={handleNodeClick}
             onConnect={handleConnect}
+            onCycleSpouse={cycleSpouse}
           />
         )}
       </div>

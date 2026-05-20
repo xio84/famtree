@@ -70,7 +70,18 @@
       "Bash(npx tsc *)",
       "Bash(grep -E '^\\(tsc|next\\)$')",
       "PowerShell(node_modules\\\\.bin\\\\tsc --noEmit 2>&1)",
-      "PowerShell(wsl -d Ubuntu -- bash -lc \"cd /home/oksi/Hobby/famtree && ./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/eslint components/tree components/members\" 2>&1)"
+      "PowerShell(wsl -d Ubuntu -- bash -lc \"cd /home/oksi/Hobby/famtree && ./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/eslint components/tree components/members\" 2>&1)",
+      "Bash(ls app/api)",
+      "Bash(ls components *)",
+      "Bash(cd '\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\oksi\\\\Hobby\\\\famtree' && ls components/tree lib)",
+      "Bash(cd '\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\oksi\\\\Hobby\\\\famtree' && grep -rn \"toLocale\\\\|getFullYear\\\\|birthDate\\\\|deathDate\\\\|dateOf\\\\|DateField\\\\|new Date\" --include=*.ts --include=*.tsx components lib types app | grep -v node_modules)",
+      "Bash(cd '\\\\\\\\wsl.localhost\\\\Ubuntu\\\\home\\\\oksi\\\\Hobby\\\\famtree' && npx tsc --noEmit 2>&1 | head -30)",
+      "Bash(node node_modules/typescript/bin/tsc --noEmit)",
+      "PowerShell(npx tsc --noEmit 2>&1)",
+      "Read(//c/Users/oksit/.nvm/versions/**)",
+      "Read(///wsl.localhost/Ubuntu/usr/local/**)",
+      "Bash(command -v node)",
+      "Bash(wsl -d Ubuntu bash -lc \"cd /home/oksi/Hobby/famtree && npx tsc --noEmit 2>&1 | head -40\")"
     ]
   }
 }

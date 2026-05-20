@@ -14,8 +14,8 @@ export interface MemberData {
   x: number | null
   y: number | null
   archived: boolean
-  createdAt: Date
   updatedAt: Date
+  createdAt: Date
 }
 
 export interface RelationshipData {

@@ -10,7 +10,11 @@ import type {
   RelationshipFormValues,
 } from "@/types"
 
-export function useTree(treeId: string, selfId?: string | null) {
+export function useTree(
+  treeId: string,
+  selfId?: string | null,
+  spouseChoice?: Record<string, string>
+) {
   const [members, setMembers] = useState<MemberData[]>([])
   const [relationships, setRelationships] = useState<RelationshipData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -61,8 +65,8 @@ export function useTree(treeId: string, selfId?: string | null) {
   }, [])
 
   const { nodes, edges } = useMemo(
-    () => buildGraphData(members, relationships, selfId),
-    [members, relationships, selfId]
+    () => buildGraphData(members, relationships, { selfId, spouseChoice }),
+    [members, relationships, selfId, spouseChoice]
   )
 
   return {

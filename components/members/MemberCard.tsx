@@ -1,10 +1,13 @@
 "use client"
 
 import type { MemberData } from "@/types"
+import { formatDate } from "@/lib/format"
 
 interface MemberCardProps {
   member: MemberData
   isSelf?: boolean
+  /** How this person relates to "you", e.g. "Your Aunt". */
+  relationLabel?: string | null
   onClose?: () => void
   onEdit?: () => void
   onDelete?: () => void
@@ -14,6 +17,7 @@ interface MemberCardProps {
 export function MemberCard({
   member,
   isSelf,
+  relationLabel,
   onClose,
   onEdit,
   onDelete,
@@ -42,15 +46,20 @@ export function MemberCard({
       </p>
       {member.birthDate && (
         <p className="text-xs text-gray-500 text-center">
-          Born {new Date(member.birthDate).toLocaleDateString()}
+          Born {formatDate(member.birthDate)}
         </p>
       )}
       {member.deathDate && (
         <p className="text-xs text-gray-500 text-center">
-          Died {new Date(member.deathDate).toLocaleDateString()}
+          Died {formatDate(member.deathDate)}
         </p>
       )}
       {member.notes && <p className="text-sm text-gray-600 border-t border-gray-100 pt-2">{member.notes}</p>}
+      {relationLabel && !isSelf && (
+        <p className="text-center text-xs font-semibold text-blue-700 bg-blue-50 rounded-lg py-1.5">
+          {relationLabel}
+        </p>
+      )}
       <div className="flex gap-2 mt-2">
         {onEdit && (
           <button

@@ -36,6 +36,7 @@ export function MemberForm({
     motherId: relationDefaults?.motherId ?? "",
     spouseId: relationDefaults?.spouseId ?? "",
   })
+  const [deceased, setDeceased] = useState(!!defaultValues?.deathDate)
   const [loading, setLoading] = useState(false)
 
   function set<K extends keyof MemberFormValues>(key: K, value: MemberFormValues[K]) {
@@ -100,25 +101,40 @@ export function MemberForm({
         </select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3">
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Birth date</label>
+      <div>
+        <label className="block text-xs font-medium text-gray-700 mb-1">Birth date</label>
+        <input
+          type="date"
+          value={values.birthDate ?? ""}
+          onChange={(e) => set("birthDate", e.target.value)}
+          className={inputCls}
+        />
+      </div>
+
+      <div>
+        <label className="flex items-center gap-2 text-xs font-medium text-gray-700">
           <input
-            type="date"
-            value={values.birthDate ?? ""}
-            onChange={(e) => set("birthDate", e.target.value)}
-            className={inputCls}
+            type="checkbox"
+            checked={deceased}
+            onChange={(e) => {
+              setDeceased(e.target.checked)
+              if (!e.target.checked) set("deathDate", "")
+            }}
+            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
           />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-gray-700 mb-1">Death date</label>
-          <input
-            type="date"
-            value={values.deathDate ?? ""}
-            onChange={(e) => set("deathDate", e.target.value)}
-            className={inputCls}
-          />
-        </div>
+          Deceased
+        </label>
+        {deceased && (
+          <div className="mt-2">
+            <label className="block text-xs font-medium text-gray-700 mb-1">Death date</label>
+            <input
+              type="date"
+              value={values.deathDate ?? ""}
+              onChange={(e) => set("deathDate", e.target.value)}
+              className={inputCls}
+            />
+          </div>
+        )}
       </div>
 
       {relationOptions && (

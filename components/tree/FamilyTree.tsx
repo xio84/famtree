@@ -16,6 +16,7 @@ import "@xyflow/react/dist/style.css"
 import { PersonNode } from "./PersonNode"
 import { JunctionNode } from "./JunctionNode"
 import { TreeControls } from "./TreeControls"
+import { CycleSpouseContext } from "./treeContext"
 import { NODE_W, NODE_H } from "@/lib/tree-utils"
 
 const nodeTypes = { person: PersonNode, junction: JunctionNode }
@@ -27,6 +28,7 @@ interface FamilyTreeProps {
   focusToken?: number
   onNodeClick?: (memberId: string) => void
   onConnect?: (connection: Connection) => void
+  onCycleSpouse?: (memberId: string, dir: number) => void
 }
 
 function FocusOnNode({
@@ -51,6 +53,8 @@ function FocusOnNode({
   return null
 }
 
+const noop = () => {}
+
 export function FamilyTree({
   nodes,
   edges,
@@ -58,6 +62,7 @@ export function FamilyTree({
   focusToken,
   onNodeClick,
   onConnect,
+  onCycleSpouse,
 }: FamilyTreeProps) {
   const [localNodes, setLocalNodes, onNodesChange] = useNodesState(nodes)
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState(edges)
@@ -74,6 +79,7 @@ export function FamilyTree({
 
   return (
     <ReactFlowProvider>
+      <CycleSpouseContext.Provider value={onCycleSpouse ?? noop}>
       <div className="w-full h-full relative">
         <ReactFlow
           nodes={localNodes}
@@ -96,6 +102,7 @@ export function FamilyTree({
           <FocusOnNode id={focusNodeId} token={focusToken} nodes={localNodes} />
         </ReactFlow>
       </div>
+      </CycleSpouseContext.Provider>
     </ReactFlowProvider>
   )
 }

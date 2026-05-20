@@ -1,9 +1,28 @@
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { randomUUID } from "crypto"
 
+const ENDPOINT = process.env.STORAGE_ENDPOINT ?? ""
+
+/**
+ * Region used for SigV4 request signing. Cloudflare R2 uses the special
+ * value "auto", but most other S3-compatible providers (Hetzner, etc.)
+ * reject it and require the real region — which is the first label of the
+ * endpoint host, e.g. https://hel1.your-objectstorage.com -> "hel1".
+ * `STORAGE_REGION` overrides the detection when set.
+ */
+function resolveRegion(): string {
+  if (process.env.STORAGE_REGION) return process.env.STORAGE_REGION
+  if (!ENDPOINT || ENDPOINT.includes("r2.cloudflarestorage.com")) return "auto"
+  try {
+    return new URL(ENDPOINT).hostname.split(".")[0] || "auto"
+  } catch {
+    return "auto"
+  }
+}
+
 const s3 = new S3Client({
-  region: "auto",
-  endpoint: process.env.STORAGE_ENDPOINT!,
+  region: resolveRegion(),
+  endpoint: ENDPOINT,
   forcePathStyle: true,
   credentials: {
     accessKeyId: process.env.STORAGE_ACCESS_KEY!,

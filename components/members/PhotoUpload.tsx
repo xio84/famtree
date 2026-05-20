@@ -18,10 +18,11 @@ export function PhotoUpload({ currentUrl, onUpload }: PhotoUploadProps) {
     try {
       const url = await api.upload.photo(file)
       onUpload(url)
-    } catch {
-      alert("Upload failed. Please try again.")
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Upload failed. Please try again.")
     } finally {
       setUploading(false)
+      e.target.value = "" // allow re-selecting the same file after a failure
     }
   }
 

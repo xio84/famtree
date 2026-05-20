@@ -52,3 +52,10 @@ export interface RelationshipFormValues {
   spouse1Id?: string
   spouse2Id?: string
 }
+
+/** Family links picked in the member form. Empty string means "none". */
+export interface RelationSelection {
+  fatherId: string
+  motherId: string
+  spouseId: string
+}

@@ -10,7 +10,7 @@ import type {
   RelationshipFormValues,
 } from "@/types"
 
-export function useTree(treeId: string) {
+export function useTree(treeId: string, selfId?: string | null) {
   const [members, setMembers] = useState<MemberData[]>([])
   const [relationships, setRelationships] = useState<RelationshipData[]>([])
   const [isLoading, setIsLoading] = useState(false)
@@ -31,8 +31,18 @@ export function useTree(treeId: string) {
     async (values: MemberFormValues) => {
       const member = (await api.members.create(treeId, values)) as MemberData
       setMembers((prev) => [...prev, member])
+      return member
     },
     [treeId]
+  )
+
+  const updateMember = useCallback(
+    async (id: string, values: Partial<MemberFormValues>) => {
+      const member = (await api.members.update(id, values)) as MemberData
+      setMembers((prev) => prev.map((m) => (m.id === id ? member : m)))
+      return member
+    },
+    []
   )
 
   const removeMember = useCallback(async (id: string) => {
@@ -45,14 +55,14 @@ export function useTree(treeId: string) {
     setRelationships((prev) => [...prev, rel])
   }, [])
 
-  const updateMemberPosition = useCallback(async (id: string, x: number, y: number) => {
-    setMembers((prev) => prev.map((m) => (m.id === id ? { ...m, x, y } : m)))
-    await api.members.updatePosition(id, x, y)
+  const removeRelationship = useCallback(async (id: string) => {
+    await api.relationships.delete(id)
+    setRelationships((prev) => prev.filter((r) => r.id !== id))
   }, [])
 
   const { nodes, edges } = useMemo(
-    () => buildGraphData(members, relationships),
-    [members, relationships]
+    () => buildGraphData(members, relationships, selfId),
+    [members, relationships, selfId]
   )
 
   return {
@@ -61,9 +71,10 @@ export function useTree(treeId: string) {
     members,
     relationships,
     addMember,
+    updateMember,
     removeMember,
     addRelationship,
-    updateMemberPosition,
+    removeRelationship,
     isLoading,
   }
 }

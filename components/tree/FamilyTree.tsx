@@ -14,9 +14,11 @@ import {
 import type { Node, Edge, Connection } from "@xyflow/react"
 import "@xyflow/react/dist/style.css"
 import { PersonNode } from "./PersonNode"
+import { JunctionNode } from "./JunctionNode"
 import { TreeControls } from "./TreeControls"
+import { NODE_W, NODE_H } from "@/lib/tree-utils"
 
-const nodeTypes = { person: PersonNode }
+const nodeTypes = { person: PersonNode, junction: JunctionNode }
 
 interface FamilyTreeProps {
   nodes: Node[]
@@ -25,7 +27,6 @@ interface FamilyTreeProps {
   focusToken?: number
   onNodeClick?: (memberId: string) => void
   onConnect?: (connection: Connection) => void
-  onNodeDragStop?: (id: string, x: number, y: number) => void
 }
 
 function FocusOnNode({
@@ -42,7 +43,10 @@ function FocusOnNode({
     if (!id) return
     const node = nodes.find((n) => n.id === id)
     if (!node) return
-    setCenter(node.position.x + 72, node.position.y + 50, { zoom: 1.2, duration: 400 })
+    setCenter(node.position.x + NODE_W / 2, node.position.y + NODE_H / 2, {
+      zoom: 1.2,
+      duration: 400,
+    })
   }, [id, token, nodes, setCenter])
   return null
 }
@@ -54,19 +58,14 @@ export function FamilyTree({
   focusToken,
   onNodeClick,
   onConnect,
-  onNodeDragStop,
 }: FamilyTreeProps) {
   const [localNodes, setLocalNodes, onNodesChange] = useNodesState(nodes)
   const [localEdges, setLocalEdges, onEdgesChange] = useEdgesState(edges)
 
+  // The layout is generated procedurally, so always adopt the latest
+  // positions rather than preserving anything from a previous render.
   useEffect(() => {
-    setLocalNodes((prev) => {
-      const prevById = new Map(prev.map((n) => [n.id, n]))
-      return nodes.map((n) => {
-        const existing = prevById.get(n.id)
-        return existing ? { ...n, position: existing.position } : n
-      })
-    })
+    setLocalNodes(nodes)
   }, [nodes, setLocalNodes])
 
   useEffect(() => {
@@ -81,11 +80,13 @@ export function FamilyTree({
           edges={localEdges}
           nodeTypes={nodeTypes}
           connectionMode={ConnectionMode.Loose}
+          nodesDraggable={false}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
-          onNodeClick={(_e, node) => onNodeClick?.(node.id)}
-          onNodeDragStop={(_e, node) => onNodeDragStop?.(node.id, node.position.x, node.position.y)}
+          onNodeClick={(_e, node) => {
+            if (node.type === "person") onNodeClick?.(node.id)
+          }}
           fitView
           proOptions={{ hideAttribution: true }}
         >

@@ -16,6 +16,12 @@ export async function POST(req: Request) {
     return Response.json({ error: "Only image files allowed" }, { status: 400 })
   }
 
-  const url = await uploadPhoto(file, session.user.id)
-  return Response.json({ url })
+  try {
+    const url = await uploadPhoto(file, session.user.id)
+    return Response.json({ url })
+  } catch (err) {
+    console.error("Photo upload failed:", err)
+    const message = err instanceof Error ? err.message : "Upload failed"
+    return Response.json({ error: `Storage error: ${message}` }, { status: 502 })
+  }
 }

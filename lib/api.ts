@@ -36,8 +36,6 @@ export const api = {
       request("/api/members", { method: "POST", body: JSON.stringify({ treeId, ...data }) }),
     update: (id: string, data: Partial<MemberFormValues>) =>
       request(`/api/members/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
-    updatePosition: (id: string, x: number, y: number) =>
-      request(`/api/members/${id}`, { method: "PATCH", body: JSON.stringify({ x, y }) }),
     delete: (id: string) => request(`/api/members/${id}`, { method: "DELETE" }),
     get: (id: string) => request(`/api/members/${id}`),
   },
@@ -52,7 +50,12 @@ export const api = {
       const form = new FormData()
       form.append("file", file)
       const res = await fetch("/api/upload", { method: "POST", body: form })
-      if (!res.ok) throw new Error("Upload failed")
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}))
+        throw new Error(
+          typeof body.error === "string" ? body.error : `Upload failed: ${res.status}`
+        )
+      }
       const { url } = await res.json()
       return url
     },

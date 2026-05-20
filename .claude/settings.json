@@ -65,7 +65,12 @@
       "PowerShell(wsl -d Ubuntu --cd /home/oksi/Hobby/famtree -- bash -lc \"npx prisma generate 2>&1 | tail -30\")",
       "PowerShell(wsl -d Ubuntu --cd /home/oksi/Hobby/famtree -- bash -lc \"npx prisma db push 2>&1 | tail -20\")",
       "PowerShell(wsl -d Ubuntu --cd /home/oksi/Hobby/famtree -- bash -lc \"npx prisma generate 2>&1 | tail -5\")",
-      "PowerShell(wsl -d Ubuntu --cd /home/oksi/Hobby/famtree -- bash -lc \"npx prisma db push 2>&1 | tail -10 && npx prisma generate 2>&1 | tail -3\")"
+      "PowerShell(wsl -d Ubuntu --cd /home/oksi/Hobby/famtree -- bash -lc \"npx prisma db push 2>&1 | tail -10 && npx prisma generate 2>&1 | tail -3\")",
+      "Bash(cd \"//wsl.localhost/Ubuntu/home/oksi/Hobby/famtree\")",
+      "Bash(npx tsc *)",
+      "Bash(grep -E '^\\(tsc|next\\)$')",
+      "PowerShell(node_modules\\\\.bin\\\\tsc --noEmit 2>&1)",
+      "PowerShell(wsl -d Ubuntu -- bash -lc \"cd /home/oksi/Hobby/famtree && ./node_modules/.bin/tsc --noEmit && ./node_modules/.bin/eslint components/tree components/members\" 2>&1)"
     ]
   }
 }
